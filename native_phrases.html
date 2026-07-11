@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ネイティブフレーズ</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ネイティブフレーズ">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root{
+  --rose:#c0718a; --rose-light:#faedf1;
+  --lavender:#8a7ab8; --lavender-light:#eeebf8;
+  --sage:#6aa88c; --sage-light:#e8f4ee;
+  --amber:#b88a50; --amber-light:#fdf3e3;
+  --bg:#f9f6fc; --surface:#fff; --border:#ede8f2;
+  --text:#28253a; --muted:#a09aac;
+  --correct:#5a9e7a; --wrong:#c06060;
+  --card-shadow:0 2px 20px rgba(90,70,130,0.08);
+  --card-shadow-md:0 4px 36px rgba(90,70,130,0.11);
+}
+body{ font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans-serif; min-height:100vh; background:var(--bg); display:flex; justify-content:center; overflow-x:hidden; color:var(--text); }
+.app{ width:100%; max-width:430px; min-height:100vh; position:relative; }
+.screen{ display:none; flex-direction:column; align-items:center; padding:0 20px 40px; min-height:100vh; }
+.screen.active{ display:flex; }
+
+/* AUTH */
+.auth-wrap{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:40px 20px; width:100%; }
+.auth-card{ background:var(--surface); border-radius:24px; padding:36px 24px 28px; width:100%; box-shadow:var(--card-shadow-md); border:1px solid var(--border); }
+.auth-title{ font-size:1.9rem; font-weight:900; letter-spacing:-1px; background:linear-gradient(135deg,var(--rose),var(--lavender)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-align:center; margin-bottom:6px; }
+.auth-sub{ font-size:0.78rem; color:var(--muted); text-align:center; margin-bottom:28px; }
+.auth-avatar-wrap{ display:flex; flex-direction:column; align-items:center; margin-bottom:20px; }
+.auth-avatar{ width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid var(--border); background:var(--bg); cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:8px; }
+.auth-avatar svg{ opacity:0.35; }
+.auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+.avatar-hint{ font-size:0.68rem; color:var(--muted); }
+.auth-input{ width:100%; padding:13px 16px; border:1.5px solid var(--border); border-radius:12px; font-size:0.93rem; color:var(--text); background:var(--bg); margin-bottom:10px; outline:none; transition:border-color .15s; }
+.auth-input:focus{ border-color:var(--lavender); background:#fff; }
+.auth-btn{ width:100%; padding:15px; background:linear-gradient(135deg,var(--rose),var(--lavender)); color:#fff; font-size:0.95rem; font-weight:800; border:none; border-radius:13px; cursor:pointer; box-shadow:0 4px 16px rgba(130,90,170,0.2); margin-top:6px; transition:transform .1s; }
+.auth-btn:active{ transform:scale(0.97); }
+.auth-switch{ text-align:center; margin-top:18px; font-size:0.82rem; color:var(--muted); }
+.auth-switch span{ color:var(--lavender); font-weight:700; cursor:pointer; }
+.auth-error{ color:var(--wrong); font-size:0.8rem; font-weight:600; text-align:center; margin-bottom:10px; display:none; }
+
+/* HOME */
+.user-bar{ display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:16px; padding:10px 14px; margin:20px 0 16px; width:100%; border:1px solid var(--border); box-shadow:var(--card-shadow); }
+.user-bar-avatar{ width:38px; height:38px; border-radius:50%; border:2px solid var(--border); background:var(--bg); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+.user-bar-avatar img{ width:100%; height:100%; object-fit:cover; }
+.user-bar-name{ font-size:0.88rem; font-weight:800; flex:1; }
+.logout-btn{ font-size:0.72rem; color:var(--muted); font-weight:700; cursor:pointer; padding:5px 10px; border:1px solid var(--border); border-radius:8px; background:transparent; }
+.logout-btn:active{ background:var(--bg); }
+.home-hero{ text-align:center; padding:36px 0 20px; width:100%; }
+.home-hero h1{ font-size:2.6rem; font-weight:900; letter-spacing:-2px; background:linear-gradient(135deg,var(--rose),var(--lavender)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.home-hero .subtitle{ font-size:0.82rem; color:var(--muted); margin-top:6px; letter-spacing:0.5px; }
+.home-card{ background:var(--surface); border-radius:24px; padding:26px 22px; width:100%; box-shadow:var(--card-shadow); border:1px solid var(--border); }
+.stats-row{ display:flex; justify-content:space-around; margin-bottom:24px; padding-bottom:22px; border-bottom:1.5px solid var(--border); }
+.stat{ text-align:center; }
+.stat-num{ font-size:1.9rem; font-weight:900; color:var(--rose); }
+.stat-label{ font-size:0.63rem; color:var(--muted); margin-top:3px; font-weight:700; letter-spacing:0.5px; }
+.mode-btn{ width:100%; padding:15px 16px; border:1.5px solid var(--border); border-radius:16px; cursor:pointer; transition:all .12s; display:flex; align-items:center; gap:12px; margin-bottom:10px; background:var(--surface); color:var(--text); box-shadow:0 1px 6px rgba(90,70,130,0.05); }
+.mode-btn:active{ transform:scale(0.97); }
+.mode-btn.quiz-btn{ border-color:#e8cdd6; background:#fffafe; }
+.mode-btn.flash-btn{ border-color:#d8d0ee; background:#faf8ff; }
+.mode-btn .btn-icon{ width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mode-btn.quiz-btn .btn-icon{ background:var(--rose-light); }
+.mode-btn.flash-btn .btn-icon{ background:var(--lavender-light); }
+.mode-btn .btn-text{ text-align:left; }
+.mode-btn .btn-title{ font-size:0.93rem; font-weight:800; display:block; color:var(--text); }
+.mode-btn .btn-desc{ font-size:0.71rem; color:var(--muted); display:block; margin-top:2px; }
+.word-count-select{ display:flex; gap:5px; margin-bottom:14px; background:var(--bg); border-radius:12px; padding:4px; }
+.count-opt{ flex:1; padding:9px; border:none; border-radius:8px; font-size:0.8rem; font-weight:700; cursor:pointer; background:transparent; color:var(--muted); transition:all .15s; }
+.count-opt.active{ background:var(--surface); color:var(--text); box-shadow:0 1px 8px rgba(90,70,130,0.08); }
+
+/* QUIZ */
+.quiz-topbar,.flash-topbar,.search-topbar{ width:100%; display:flex; align-items:center; gap:10px; padding:16px 0 12px; }
+.back-btn{ width:36px; height:36px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 1px 4px rgba(90,70,130,0.06); }
+.back-btn svg{ fill:currentColor; }
+.back-btn:active{ background:var(--bg); }
+.prog-wrap{ flex:1; background:var(--border); border-radius:99px; height:6px; overflow:hidden; }
+.prog-bar{ height:100%; background:linear-gradient(90deg,var(--rose),var(--lavender)); border-radius:99px; transition:width .4s cubic-bezier(.4,0,.2,1); }
+.score-chip{ background:var(--rose-light); color:var(--rose); font-size:0.78rem; font-weight:800; padding:5px 12px; border-radius:99px; white-space:nowrap; border:1px solid #e8c8d4; }
+.word-card{ background:var(--surface); border-radius:22px; padding:30px 22px 26px; width:100%; text-align:center; box-shadow:var(--card-shadow-md); margin-bottom:14px; border:1px solid var(--border); }
+.word-tag{ display:inline-block; background:var(--lavender-light); color:var(--lavender); font-size:0.66rem; font-weight:800; padding:4px 12px; border-radius:99px; letter-spacing:0.5px; margin-bottom:16px; }
+.word-english{ font-size:1.7rem; font-weight:900; color:var(--text); letter-spacing:-0.5px; line-height:1.25; margin-bottom:14px; }
+.speak-btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 18px; background:var(--amber-light); color:var(--amber); font-size:0.78rem; font-weight:800; border:1.5px solid #edd8b0; border-radius:99px; cursor:pointer; }
+.speak-btn:active{ transform:scale(0.94); background:#f5e6c4; }
+.speak-icon{ width:13px; height:13px; fill:var(--amber); }
+.choices{ width:100%; display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+.choice-btn{ padding:15px 17px; background:var(--surface); color:var(--text); font-size:0.92rem; font-weight:600; border:1.5px solid var(--border); border-radius:13px; cursor:pointer; text-align:left; transition:all .12s; box-shadow:0 1px 4px rgba(90,70,130,0.04); line-height:1.35; }
+.choice-btn:active:not([disabled]){ transform:scale(0.98); border-color:var(--lavender); background:var(--lavender-light); }
+.choice-btn.correct{ border-color:var(--correct); background:var(--sage-light); color:#1a5438; }
+.choice-btn.wrong{ border-color:var(--wrong); background:#fdf0f0; color:#7a2020; }
+.choice-btn[disabled]{ cursor:default; }
+.feedback-card{ background:var(--surface); border-radius:18px; padding:18px 20px; width:100%; box-shadow:var(--card-shadow); border:1px solid var(--border); margin-bottom:12px; display:none; animation:popIn .22s cubic-bezier(.34,1.56,.64,1); }
+.feedback-card.visible{ display:block; }
+@keyframes popIn{ from{ transform:scale(0.92) translateY(10px); opacity:0; } to{ transform:scale(1) translateY(0); opacity:1; } }
+.feedback-label{ font-size:0.93rem; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.feedback-label.ok{ color:var(--correct); }
+.feedback-label.ng{ color:var(--wrong); }
+.scene-tag{ display:inline-block; background:var(--amber-light); color:var(--amber); font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:99px; letter-spacing:0.5px; margin-bottom:8px; border:1px solid #edd8b0; }
+.scene-body{ font-size:0.86rem; color:#5a5060; line-height:1.6; }
+.next-btn{ width:100%; padding:16px; background:linear-gradient(135deg,var(--rose),var(--lavender)); color:#fff; font-size:0.95rem; font-weight:800; border:none; border-radius:15px; cursor:pointer; box-shadow:0 5px 18px rgba(130,90,170,0.22); display:none; margin-bottom:24px; letter-spacing:0.3px; }
+.next-btn:active{ transform:scale(0.97); }
+
+/* FLASHCARD */
+.flash-counter{ flex:1; text-align:center; color:var(--muted); font-size:0.8rem; font-weight:700; }
+.flashcard{ background:var(--surface); border-radius:22px; width:100%; min-height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 26px; box-shadow:var(--card-shadow-md); cursor:pointer; transition:transform .15s; text-align:center; margin-bottom:12px; position:relative; user-select:none; border:1px solid var(--border); }
+.flashcard:active{ transform:scale(0.98); }
+.flash-tap-hint{ font-size:0.68rem; color:#d0cad8; font-weight:600; margin-bottom:12px; letter-spacing:0.3px; }
+.flash-word{ font-size:1.6rem; font-weight:900; color:var(--text); letter-spacing:-0.5px; line-height:1.3; }
+.flash-meaning{ font-size:1.15rem; font-weight:800; color:var(--lavender); margin-top:10px; line-height:1.4; }
+.scene-strip{ background:var(--surface); border-radius:16px; padding:15px 18px; width:100%; margin-bottom:12px; border:1.5px solid var(--amber-light); }
+.scene-strip .scene-tag-white{ font-size:0.6rem; font-weight:800; color:var(--amber); letter-spacing:0.5px; margin-bottom:6px; }
+.scene-strip .scene-text-white{ font-size:0.85rem; color:#5a5060; line-height:1.55; }
+.flash-nav{ display:flex; gap:8px; width:100%; margin-bottom:32px; }
+.nav-btn{ flex:1; padding:14px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-size:0.86rem; font-weight:700; border-radius:13px; cursor:pointer; box-shadow:0 1px 4px rgba(90,70,130,0.05); }
+.nav-btn:active{ background:var(--bg); transform:scale(0.97); }
+.nav-btn.center{ flex:0.8; border-color:var(--amber-light); color:var(--amber); background:var(--amber-light); }
+.learned-btn{ width:100%; padding:14px; border:1.5px solid var(--border); background:var(--surface); color:var(--muted); font-size:0.86rem; font-weight:800; border-radius:13px; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; box-shadow:0 1px 4px rgba(90,70,130,0.04); }
+.learned-btn.checked{ border-color:var(--sage); background:var(--sage-light); color:#1a5438; }
+.learned-btn:active{ transform:scale(0.97); }
+.learned-badge{ position:absolute; top:14px; right:14px; background:var(--sage-light); color:var(--sage); font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:99px; display:none; border:1px solid #b8dac8; }
+.learned-badge.show{ display:inline-block; }
+.flash-cat-badge{ position:absolute; top:14px; left:14px; background:var(--lavender-light); color:var(--lavender); font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:99px; display:none; border:1px solid #d0c8ee; letter-spacing:0.3px; }
+.flash-cat-badge.show{ display:inline-block; }
+
+/* RESULT */
+.result-wrap{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:40px 20px; }
+.result-card{ background:var(--surface); border-radius:24px; padding:40px 24px 32px; width:100%; text-align:center; box-shadow:var(--card-shadow-md); border:1px solid var(--border); }
+.result-title{ font-size:0.68rem; font-weight:700; color:var(--muted); letter-spacing:1.5px; margin-bottom:20px; }
+.result-score{ font-size:5rem; font-weight:900; line-height:1; background:linear-gradient(135deg,var(--rose),var(--lavender)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px; }
+.result-denom{ font-size:0.92rem; color:var(--muted); margin-bottom:10px; }
+.result-pct{ display:inline-block; padding:5px 18px; border-radius:99px; font-size:0.85rem; font-weight:800; margin-bottom:16px; }
+.result-pct.s{ background:var(--sage-light); color:#1a5438; }
+.result-pct.a{ background:var(--lavender-light); color:#3d2e8a; }
+.result-pct.b{ background:var(--amber-light); color:#7a5010; }
+.result-pct.c{ background:#fdf0f0; color:#7a2020; }
+.result-msg{ font-size:1rem; font-weight:700; color:var(--text); margin-bottom:28px; }
+.result-actions{ display:flex; flex-direction:column; gap:10px; }
+.btn-retry{ padding:16px; background:linear-gradient(135deg,var(--rose),var(--lavender)); color:#fff; font-size:0.93rem; font-weight:800; border:none; border-radius:14px; cursor:pointer; box-shadow:0 5px 18px rgba(130,90,170,0.22); }
+.btn-retry:active{ transform:scale(0.97); }
+.btn-home{ padding:15px; background:transparent; color:var(--muted); font-size:0.9rem; font-weight:700; border:1.5px solid var(--border); border-radius:14px; cursor:pointer; }
+.btn-home:active{ background:var(--bg); }
+
+/* SEARCH */
+.search-input-wrap{ width:100%; position:relative; margin-bottom:14px; }
+.search-input{ width:100%; padding:14px 46px 14px 18px; border:1.5px solid var(--border); border-radius:14px; font-size:1rem; color:var(--text); background:var(--surface); outline:none; box-shadow:var(--card-shadow); }
+.search-input:focus{ border-color:var(--lavender); }
+.search-clear{ position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); font-size:1.1rem; padding:4px; display:none; }
+.search-hint{ text-align:center; color:var(--muted); font-size:0.82rem; margin-top:40px; }
+.search-results{ width:100%; display:flex; flex-direction:column; gap:10px; }
+.search-result-card{ background:var(--surface); border:1.5px solid var(--border); border-radius:16px; padding:16px 18px; box-shadow:var(--card-shadow); }
+.sr-word{ font-size:1.15rem; font-weight:900; color:var(--text); margin-bottom:4px; line-height:1.3; }
+.sr-jp{ font-size:0.9rem; font-weight:700; color:var(--lavender); margin-bottom:8px; }
+.sr-scene{ font-size:0.78rem; color:#7a6a80; line-height:1.5; background:var(--amber-light); border-radius:8px; padding:7px 10px; }
+.sr-speak{ margin-top:10px; display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; font-weight:700; color:var(--amber); background:var(--amber-light); border:1px solid #edd8b0; border-radius:99px; padding:5px 12px; cursor:pointer; }
+.no-results{ text-align:center; color:var(--muted); font-size:0.88rem; margin-top:30px; }
+.search-count{ font-size:0.72rem; color:var(--muted); margin-bottom:10px; font-weight:700; }
+
+.confetti-wrap{ position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; overflow:hidden; z-index:100; }
+.confetti-piece{ position:absolute; width:10px; height:10px; border-radius:2px; animation:confettiFall linear forwards; }
+@keyframes confettiFall{ 0%{ transform:translateY(-20px) rotate(0deg); opacity:1; } 100%{ transform:translateY(110vh) rotate(720deg); opacity:0; } }
+#avatarInput{ display:none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- LOGIN -->
+<div class="screen active" id="loginScreen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">ネイティブフレーズ</div>
+      <div class="auth-sub">ログインして学習を続けよう</div>
+      <div class="auth-error" id="loginError"></div>
+      <input class="auth-input" type="text" id="loginUser" placeholder="ユーザー名" autocomplete="username">
+      <input class="auth-input" type="password" id="loginPass" placeholder="パスワード" autocomplete="current-password">
+      <button class="auth-btn" onclick="doLogin()">ログイン</button>
+      <div class="auth-switch">アカウントがない？ <span onclick="showRegister()">新規登録</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="screen" id="registerScreen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">新規登録</div>
+      <div class="auth-sub">アカウントを作成しよう</div>
+      <div class="auth-error" id="regError"></div>
+      <div class="auth-avatar-wrap">
+        <div class="auth-avatar" id="regAvatarPreview" onclick="document.getElementById('avatarInput').click()">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="#a09aac"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <div class="avatar-hint">タップして写真を選ぶ（任意）</div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
+      <input class="auth-input" type="text" id="regUser" placeholder="ユーザー名" autocomplete="username">
+      <input class="auth-input" type="password" id="regPass" placeholder="パスワード" autocomplete="new-password">
+      <input class="auth-input" type="password" id="regPass2" placeholder="パスワード（確認）" autocomplete="new-password">
+      <button class="auth-btn" onclick="doRegister()">登録する</button>
+      <div class="auth-switch">すでにアカウントがある？ <span onclick="showLogin()">ログイン</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="homeScreen">
+  <div class="user-bar">
+    <div class="user-bar-avatar" id="homeAvatar">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#a09aac"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <div class="user-bar-name" id="homeUserName">—</div>
+    <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+  </div>
+  <div class="home-hero">
+    <h1>ネイティブフレーズ</h1>
+    <div class="subtitle">ネイティブが最初に覚える英会話300フレーズ</div>
+  </div>
+  <div class="home-card">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="statWords">—</div><div class="stat-label">収録フレーズ</div></div>
+      <div class="stat"><div class="stat-num" id="statLearned" style="color:var(--sage);">0</div><div class="stat-label">覚えた</div></div>
+      <div class="stat"><div class="stat-num" id="statBest">—</div><div class="stat-label">最高正答率</div></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#bbb;letter-spacing:0.5px;margin-bottom:8px;">出題の向き</div>
+      <div class="word-count-select">
+        <button class="count-opt active" data-d="en2jp" onclick="setDir('en2jp',this)">英語 → 日本語</button>
+        <button class="count-opt" data-d="jp2en" onclick="setDir('jp2en',this)">日本語 → 英語</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#bbb;letter-spacing:0.5px;margin-bottom:8px;">出題数</div>
+      <div class="word-count-select">
+        <button class="count-opt" data-n="10" onclick="setCount(10,this)">10問</button>
+        <button class="count-opt active" data-n="20" onclick="setCount(20,this)">20問</button>
+        <button class="count-opt" data-n="100" onclick="setCount(100,this)">100問</button>
+        <button class="count-opt" data-n="9999" onclick="setCount(9999,this)">全問</button>
+      </div>
+    </div>
+    <button class="mode-btn quiz-btn" onclick="startQuiz(false)">
+      <div class="btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="#c0718a"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/></svg></div>
+      <div class="btn-text"><span class="btn-title">クイズ — 全フレーズ</span><span class="btn-desc">英語→日本語 4択テスト + 発音</span></div>
+    </button>
+    <button class="mode-btn" style="border-color:#b8dac8;background:#f0faf5;" onclick="startQuiz(true)">
+      <div class="btn-icon" style="background:var(--sage-light);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6aa88c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="btn-text"><span class="btn-title">クイズ — 未習得のみ</span><span class="btn-desc">覚えた以外のフレーズでテスト</span></div>
+    </button>
+    <button class="mode-btn flash-btn" onclick="startFlash(false)">
+      <div class="btn-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8a7ab8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="btn-text"><span class="btn-title">フレーズ帳 — 全フレーズ</span><span class="btn-desc">使う場面付きフラッシュカード</span></div>
+    </button>
+    <button class="mode-btn" style="border-color:#edd8b0;background:#fdf8f0;" onclick="startFlash(true)">
+      <div class="btn-icon" style="background:var(--amber-light);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b88a50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="btn-text"><span class="btn-title">フレーズ帳 — 未習得のみ</span><span class="btn-desc">覚えた以外のフレーズを表示</span></div>
+    </button>
+    <button class="mode-btn" style="border-color:#c8d8ee;background:#f0f6ff;" onclick="showSearch()">
+      <div class="btn-icon" style="background:#e0ecff;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4a7ab8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="btn-text"><span class="btn-title">フレーズを検索</span><span class="btn-desc">英語・日本語でフレーズを調べる</span></div>
+    </button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quizScreen">
+  <div class="quiz-topbar">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+    <div class="score-chip" id="scoreChip">0 / 0</div>
+  </div>
+  <div class="word-card">
+    <div class="word-tag" id="qTag">Q 1 / 20</div>
+    <div class="word-english" id="qWord">—</div>
+    <button class="speak-btn" id="quizSpeakBtn" onclick="speakCurrent()">
+      <svg class="speak-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      発音を聞く
+    </button>
+  </div>
+  <div class="choices" id="choices"></div>
+  <div class="feedback-card" id="feedCard">
+    <div class="feedback-label" id="feedLabel"></div>
+    <div class="scene-tag">使う場面</div>
+    <div class="scene-body" id="feedScene"></div>
+  </div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">次の問題へ →</button>
+</div>
+
+<!-- FLASHCARD -->
+<div class="screen" id="flashScreen">
+  <div class="flash-topbar">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="flash-counter" id="flashCounter">1 / 300</div>
+    <button class="back-btn" onclick="shuffleFlash()" title="シャッフル"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+  </div>
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="learned-badge" id="flashLearnedBadge">覚えた</div>
+    <div class="flash-cat-badge" id="flashCatBadge"></div>
+    <div class="flash-tap-hint" id="flashHint">タップで意味を表示</div>
+    <div class="flash-word" id="flashWord">—</div>
+    <div class="flash-meaning" id="flashMeaning" style="display:none"></div>
+  </div>
+  <button class="learned-btn" id="learnedBtn" onclick="toggleLearned()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    覚えた！
+  </button>
+  <div class="scene-strip">
+    <div class="scene-tag-white">使う場面</div>
+    <div class="scene-text-white" id="flashScene"></div>
+  </div>
+  <div class="flash-nav">
+    <button class="nav-btn" onclick="flashPrev()">← 前</button>
+    <button class="nav-btn center" onclick="speakFlash()">発音</button>
+    <button class="nav-btn" onclick="flashNext()">次 →</button>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="screen" id="searchScreen">
+  <div class="search-topbar">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div style="font-size:0.95rem;font-weight:800;color:var(--text);">フレーズ検索</div>
+  </div>
+  <div class="search-input-wrap">
+    <input class="search-input" id="searchInput" type="text" placeholder="英語または日本語で検索..." oninput="doSearch(this.value)" autocomplete="off">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+  <div id="searchResults"><div class="search-hint">英語（例：Go ahead）または日本語（例：どうぞ）で検索</div></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="resultScreen">
+  <div class="result-wrap">
+    <div class="result-card">
+      <div class="result-title">テスト結果</div>
+      <div class="result-score" id="rScore">0</div>
+      <div class="result-denom" id="rDenom">/ 20問正解</div>
+      <div class="result-pct" id="rPct">—</div>
+      <div class="result-msg" id="rMsg"></div>
+      <div class="result-actions">
+        <button class="btn-retry" onclick="startQuiz(lastUnlearnt)">もう一度チャレンジ</button>
+        <button class="btn-home" onclick="goHome()">ホームに戻る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<script>
+// ===== DATA =====
+const VOCAB = [
+  { en:"I'm not sure.", jp:"ちょっとわからないな。", cat:"返事", scene:"答えに自信がないときや、はっきり断言できないときに。聞かれて即答できない場面で。" },
+  { en:"Go ahead.", jp:"どうぞ。", cat:"返事", scene:"相手に「先にどうぞ」「やっていいよ」と促すとき。順番やお願いを許可する場面で。" },
+  { en:"Be careful", jp:"気をつけて！", cat:"注意", scene:"相手が危ない目に遭いそうなとき、出かける人を見送るときに。" },
+  { en:"Good for you.", jp:"よかったね！", cat:"あいづち", scene:"相手にいいことがあったとき、一緒に喜んであげる場面で。" },
+  { en:"Here.", jp:"はいどうぞ。", cat:"一言", scene:"物を手渡すときの一言。「はい、これ」と差し出す場面で。" },
+  { en:"Not yet.", jp:"まだダメです。", cat:"返事", scene:"「もう終わった?」などに対して「まだ」と答えるときに。" },
+  { en:"Almost.", jp:"おしい。", cat:"あいづち", scene:"あと少しで正解・達成というとき。クイズやゲームで惜しい場面で。" },
+  { en:"Good for you.", jp:"良かったね。", cat:"あいづち", scene:"相手のうれしい報告に「よかったね」と返す場面で。" },
+  { en:"Please don't.", jp:"やめて。", cat:"注意", scene:"相手にやめてほしいとき、やんわり制止する場面で。" },
+  { en:"Don't be shy.", jp:"はずかしがらないで。", cat:"励まし", scene:"遠慮や照れでためらっている相手の背中を押すときに。" },
+  { en:"See you later.", jp:"またね。", cat:"あいさつ", scene:"その日また会う・近いうちに会う人との別れ際に。" },
+  { en:"Come on in.", jp:"どうぞ入って。", cat:"あいさつ", scene:"家や部屋に来客を招き入れるときに。" },
+  { en:"I'll get it.", jp:"私がやるよ！", cat:"返事", scene:"電話やドアが鳴ったとき、自分が対応すると申し出る場面で。" },
+  { en:"Tell me too.", jp:"私にも教えて。", cat:"依頼", scene:"楽しそうな話や情報を、自分にも共有してほしいときに。" },
+  { en:"Just a little.", jp:"少しだけ。", cat:"返事", scene:"量を聞かれて「ちょっとだけ」と答えるとき。飲み物などで。" },
+  { en:"Never mind.", jp:"気にしないで。", cat:"返事", scene:"相手が謝ったときや、言いかけてやめるときに「なんでもない」と。" },
+  { en:"That's all.", jp:"それで終わりです。", cat:"一言", scene:"注文を締めくくるとき、話を終えるときに「以上です」の意味で。" },
+  { en:"Borrow it.", jp:"それかして！", cat:"依頼", scene:"相手の物を「貸して」とお願いする場面で。" },
+  { en:"I got it.", jp:"わかった。", cat:"返事", scene:"説明を理解したとき、了解したときに「わかった」と返す場面で。" },
+  { en:"Hold on!", jp:"ちょっと待って！", cat:"一言", scene:"少し待ってほしいとき、電話で相手を保留にするときに。" },
+  { en:"Listen up!", jp:"聞いて。", cat:"一言", scene:"みんなの注目を集めて大事なことを伝えたいときに。" },
+  { en:"Almost there.", jp:"もうすぐ着くよ。", cat:"一言", scene:"目的地まであと少しのとき、移動中に相手を安心させる場面で。" },
+  { en:"Tell me too.", jp:"私にも教えて。", cat:"依頼", scene:"内緒話や情報を「自分にも教えて」とねだるときに。" },
+  { en:"Join me!", jp:"一緒に来て。", cat:"提案", scene:"相手を自分の活動や食事などに誘うときに。" },
+  { en:"Is that enough?", jp:"足りる？", cat:"質問", scene:"量やお金が十分か、相手に確認するときに。" },
+  { en:"What's wrong?", jp:"どうしたの？", cat:"質問", scene:"元気がない・様子がおかしい相手を気づかうときに。" },
+  { en:"I can't wait!", jp:"待ちきれない！", cat:"気持ち", scene:"楽しみな予定が待ちきれないほどワクワクしているときに。" },
+  { en:"Give me that!", jp:"それください。", cat:"依頼", scene:"目の前の物を「それ取って・ちょうだい」とお願いするときに。" },
+  { en:"It's my turn.", jp:"私の番です。", cat:"一言", scene:"ゲームや順番待ちで「次は自分」と伝えるときに。" },
+  { en:"Stop it.", jp:"やめて", cat:"注意", scene:"相手のしつこい行動やふざけを止めたいときに。" },
+  { en:"Let me try.", jp:"私にやらせて。", cat:"依頼", scene:"自分にチャレンジさせてほしいと申し出るときに。" },
+  { en:"Who cares.", jp:"だからなんなの。", cat:"気持ち", scene:"どうでもいい・気にしないと突き放すときに（ややくだけた言い方）。" },
+  { en:"I'll check there.", jp:"そこを確認してみます。", cat:"返事", scene:"その場所や点を自分が調べると伝えるときに。" },
+  { en:"I'll get it.", jp:"私がやっておきます。", cat:"返事", scene:"仕事や用事を自分が引き受けると申し出るときに。" },
+  { en:"I love this.", jp:"これが大好きです。", cat:"気持ち", scene:"気に入った物や場所への好きという気持ちを伝えるときに。" },
+  { en:"Are you sure?", jp:"本当？", cat:"質問", scene:"相手の発言が本当か、念のため確認するときに。" },
+  { en:"Take your time.", jp:"ごゆっくり。", cat:"一言", scene:"急がなくていいと相手に伝え、ゆっくりしてもらうときに。" },
+  { en:"Good luck.", jp:"がんばって。", cat:"励まし", scene:"試験や挑戦に向かう相手を応援するときに。" },
+  { en:"That's stylish!", jp:"それ、かっこいい！", cat:"あいづち", scene:"相手の服装や持ち物のおしゃれさを褒めるときに。" },
+  { en:"Strike a pose.", jp:"ポーズして。", cat:"一言", scene:"写真を撮るとき、相手にポーズを取ってもらうときに。" },
+  { en:"Let's hurry up.", jp:"急ごう。", cat:"提案", scene:"時間がないとき、一緒に急ぐよう促すときに。" },
+  { en:"That's right.", jp:"そのとおり。", cat:"返事", scene:"相手の言ったことが正しいと同意するときに。" },
+  { en:"Please write down.", jp:"書いてください。", cat:"依頼", scene:"内容を紙やメモに書いてほしいとお願いするときに。" },
+  { en:"Just joking.", jp:"冗談だよ。", cat:"一言", scene:"言ったことが冗談だと、すぐにフォローするときに。" },
+  { en:"Here it is.", jp:"はい、どうぞ。", cat:"一言", scene:"探していた物が見つかったとき、差し出すときに。" },
+  { en:"I'm with you!", jp:"あなたと同じ気持ちです。", cat:"返事", scene:"相手の意見や気持ちに完全に同意するときに。" },
+  { en:"How often?", jp:"どのくらいの頻度で？", cat:"質問", scene:"どれくらいの頻度でするのか尋ねるときに。" },
+  { en:"Trust me.", jp:"まかせて。", cat:"返事", scene:"自分を信じて任せてほしいと伝えるときに。" },
+  { en:"Check it out.", jp:"調べてみて。", cat:"提案", scene:"面白い物や情報を「見てみて」と相手に勧めるときに。" },
+  { en:"Here you are.", jp:"どうぞ", cat:"一言", scene:"物やお金を相手に手渡すときの定番フレーズ。" },
+  { en:"My pleasure.", jp:"よろこんで", cat:"返事", scene:"お礼を言われたとき「どういたしまして」と上品に返すときに。" },
+  { en:"See you Monday.", jp:"また月曜日に。", cat:"あいさつ", scene:"次に会うのが月曜とわかっている別れ際に。" },
+  { en:"It depends.", jp:"場合によるね。", cat:"返事", scene:"答えが状況次第で変わるときに。即答できない質問への返しで。" },
+  { en:"Enjoy.", jp:"楽しんで。", cat:"あいさつ", scene:"出かける人や食事をする人に「楽しんでね」と声をかけるときに。" },
+  { en:"Watch out!", jp:"気をつけて", cat:"注意", scene:"目の前に危険が迫っているとき、とっさに注意を促すときに。" },
+  { en:"You decide.", jp:"あなたが決めてよ。", cat:"返事", scene:"選択を相手に委ねるとき。「どっちでもいいよ」の場面で。" },
+  { en:"I'm with you.", jp:"賛成。", cat:"返事", scene:"相手の提案や意見に賛同するときに。" },
+  { en:"I'm in trouble.", jp:"困ってます。", cat:"気持ち", scene:"問題が起きて困っていることを伝え、助けを求めたいときに。" },
+  { en:"I'm just looking.", jp:"ちょっと見ているだけです。", cat:"一言", scene:"店で店員に声をかけられ「見てるだけ」と答えるときに。" },
+  { en:"To go, please.", jp:"テイクアウトにします。", cat:"依頼", scene:"カフェやファストフードで持ち帰りを伝えるときに。" },
+  { en:"You decide.", jp:"あなたが決めて。", cat:"返事", scene:"決定権を相手に渡すとき。お店選びなどで。" },
+  { en:"I knew it.", jp:"やっぱりね。", cat:"あいづち", scene:"予想していた通りの結果になったときに。" },
+  { en:"Answer the phone.", jp:"電話に出て！", cat:"依頼", scene:"電話が鳴っているのに出ない相手に出るよう促すときに。" },
+  { en:"Can I try?", jp:"やってみていい？", cat:"質問", scene:"自分も試してみたいと許可を求めるときに。" },
+  { en:"Is that right?", jp:"そうなの？", cat:"あいづち", scene:"相手の話に「へえ、そうなんだ」と相づちを打つときに。" },
+  { en:"I'm coming.", jp:"今いきます。", cat:"返事", scene:"呼ばれたとき「今行く」とすぐ答えるときに。" },
+  { en:"Why is that?", jp:"なぜですか？", cat:"質問", scene:"理由を尋ねるときに。「どうして?」の場面で。" },
+  { en:"Sure.", jp:"いいよ。", cat:"返事", scene:"頼まれごとや誘いを快く引き受けるときに。" },
+  { en:"Are you ready?", jp:"準備できた？", cat:"質問", scene:"出発前や開始前に、相手の準備が整ったか確認するときに。" },
+  { en:"Do I have to?", jp:"やらなきゃいけないの？", cat:"質問", scene:"気が進まないことを「本当にやるの?」と渋るときに。" },
+  { en:"That's enough.", jp:"十分です。", cat:"一言", scene:"量が足りたとき、またはやりすぎを止めたいときに。" },
+  { en:"Is that necessary?", jp:"それって必要ですか？", cat:"質問", scene:"本当に必要かどうか疑問に思い、確認するときに。" },
+  { en:"That's weird.", jp:"へんだよ。", cat:"あいづち", scene:"何かおかしい・変だと感じたことを口にするときに。" },
+  { en:"Let's not fight.", jp:"けんかはやめよう。", cat:"提案", scene:"言い争いになりそうなとき、場を収めようとするときに。" },
+  { en:"That feels good.", jp:"気持ちいい！", cat:"気持ち", scene:"マッサージや風など、心地よさを感じたときに。" },
+  { en:"What happened?", jp:"どうしたんですか？", cat:"質問", scene:"何か起きた様子の相手に、事情を尋ねるときに。" },
+  { en:"Is that enough?", jp:"それでたりる？", cat:"質問", scene:"量や数が足りるか相手に確かめるときに。" },
+  { en:"Are you serious?", jp:"本気なの？", cat:"質問", scene:"信じられない話に「マジで?」と驚いて聞き返すときに。" },
+  { en:"Clean your room.", jp:"部屋を片づけなさい！", cat:"依頼", scene:"散らかった部屋を片付けるよう指示するときに。" },
+  { en:"Are seats available?", jp:"空席はありますか？", cat:"質問", scene:"レストランや劇場で空いている席があるか尋ねるときに。" },
+  { en:"What's that for?", jp:"それは何に使うの？", cat:"質問", scene:"見慣れない物の用途を尋ねるときに。" },
+  { en:"You look frustrated.", jp:"なんかイライラしてるみたいね。", cat:"あいづち", scene:"相手のイライラした様子に気づいて声をかけるときに。" },
+  { en:"Let's go in.", jp:"入ろう。", cat:"提案", scene:"お店や建物の前で「中に入ろう」と促すときに。" },
+  { en:"He lacks courage.", jp:"彼は勇気がない。", cat:"一言", scene:"誰かについて「勇気が足りない」と評するときに。" },
+  { en:"I tried everything.", jp:"精一杯やった。", cat:"気持ち", scene:"できることは全部やり尽くしたと伝えるときに。" },
+  { en:"I'm tired.", jp:"疲れた。", cat:"気持ち", scene:"一日の終わりや作業のあと、疲れを口にするときに。" },
+  { en:"Careful.", jp:"気をつけて。", cat:"注意", scene:"とっさに「気をつけて」と短く注意を促すときに。" },
+  { en:"Never mind.", jp:"気にしないで。", cat:"返事", scene:"相手が気にしているとき「いいよ、平気」となだめるときに。" },
+  { en:"That's too bad.", jp:"残念だなあ。", cat:"あいづち", scene:"相手の残念な話に「それは気の毒に」と同情するときに。" },
+  { en:"Everyone does it.", jp:"みんなやってるよ。", cat:"一言", scene:"自分の行動を「みんなやってる」と正当化・説得するときに。" },
+  { en:"I can't help it.", jp:"しょうがない。", cat:"気持ち", scene:"どうにもできない状況を受け入れるときに。" },
+  { en:"After you.", jp:"お先にどうぞ。", cat:"一言", scene:"ドアやエレベーターで相手に先を譲るときに。" },
+  { en:"Order envy.", jp:"そっちの方が美味しそう。", cat:"気持ち", scene:"レストランで相手の注文の方がよく見えたときに。" },
+  { en:"It's picnic weather!", jp:"お天気、最高！", cat:"気持ち", scene:"よく晴れて外に出たくなるような天気のときに。" },
+  { en:"I forgot!", jp:"忘れちゃった。", cat:"一言", scene:"うっかり何かを忘れてしまったと気づいたときに。" },
+  { en:"I'm exhausted!", jp:"くたびれたな。", cat:"気持ち", scene:"へとへとに疲れ切ったことを強調して言うときに。" },
+  { en:"She seems honest.", jp:"彼女は正直そう。", cat:"一言", scene:"人の印象を「正直そうな人だね」と語るときに。" },
+  { en:"You're lucky.", jp:"うらやましい！", cat:"あいづち", scene:"相手の幸運や境遇をうらやむときに。" },
+  { en:"I'd rather not.", jp:"やっぱりやめておこう。", cat:"返事", scene:"気が進まないことをやんわり断るときに。" },
+  { en:"I'd better hurry.", jp:"急がなくっちゃ。", cat:"一言", scene:"時間が迫っていて急ぐ必要があると気づいたときに。" },
+  { en:"What a coincidence!", jp:"すごい偶然！", cat:"あいづち", scene:"思いがけず誰かに会ったり、偶然が重なったときに。" },
+  { en:"That disappoints me.", jp:"それはがっかり。", cat:"気持ち", scene:"期待外れでがっかりした気持ちを伝えるときに。" },
+  { en:"That's stupid.", jp:"バカみたい。", cat:"気持ち", scene:"ばかばかしいと感じたことを口にするときに（否定的）。" },
+  { en:"I can't buy that.", jp:"納得できないな。", cat:"気持ち", scene:"相手の説明や言い分に納得できないときに。" },
+  { en:"I will take this.", jp:"これにする！", cat:"返事", scene:"買い物や注文で「これに決めた」と選ぶときに。" },
+  { en:"Let's not.", jp:"やめようよ。", cat:"提案", scene:"やめておこうと相手を引き止めるときに。" },
+  { en:"I'd better hurry.", jp:"急がなきゃ。", cat:"一言", scene:"遅れそうで急がなければと自分に言い聞かせるときに。" },
+  { en:"Which one?", jp:"どれですか？", cat:"質問", scene:"複数の中からどれか尋ねるときに。" },
+  { en:"It might rain.", jp:"雨がふるかもしれない。", cat:"一言", scene:"空模様を見て雨を予想するときに。" },
+  { en:"Let me see.", jp:"見せてください。", cat:"依頼", scene:"相手の持っている物を見せてほしいときに。" },
+  { en:"I used to.", jp:"前はね。", cat:"返事", scene:"「昔はやっていた（今はしない）」と答えるときに。" },
+  { en:"Who is that?", jp:"それは誰？", cat:"質問", scene:"写真の人物や話に出た人が誰か尋ねるときに。" },
+  { en:"Are you free ?", jp:"ひまですか。", cat:"質問", scene:"相手の予定を尋ねて、誘う前の切り出しに。" },
+  { en:"Is that so?", jp:"そうなの？", cat:"あいづち", scene:"相手の話に「へえ、そうなんだ」と相づちを打つときに。" },
+  { en:"That looks delicious.", jp:"美味しそう。", cat:"気持ち", scene:"出された料理や写真を見て、おいしそうだと言うときに。" },
+  { en:"Be my guest.", jp:"ご自由にどうぞ", cat:"返事", scene:"「使っていい?」などに「もちろんどうぞ」と快諾するときに。" },
+  { en:"Who told you?", jp:"誰があなたに言ったの？", cat:"質問", scene:"情報の出どころを「誰から聞いたの?」と尋ねるときに。" },
+  { en:"Keep in touch.", jp:"連絡を取り合いましょう", cat:"あいさつ", scene:"しばらく会えない人との別れ際に「連絡してね」と。" },
+  { en:"It all depends.", jp:"時と場合によります。", cat:"返事", scene:"答えが状況に左右されると伝えるときに。" },
+  { en:"When was that?", jp:"それはいつのこと？", cat:"質問", scene:"話に出た出来事がいつあったか尋ねるときに。" },
+  { en:"You can't complain.", jp:"文句は言えないよ。", cat:"一言", scene:"恵まれた状況なのに不満を言う相手をたしなめるときに。" },
+  { en:"That looks expensive.", jp:"高そうだな。", cat:"気持ち", scene:"値の張りそうな物を見て感想を言うときに。" },
+  { en:"You can do it !", jp:"君ならできる。", cat:"励まし", scene:"不安そうな相手を「君ならできる」と励ますときに。" },
+  { en:"Please don't rush me.", jp:"せかさないで。", cat:"依頼", scene:"急かされて「ちょっと待って、焦らせないで」と伝えるときに。" },
+  { en:"My family is close.", jp:"私の家族は仲がいい。", cat:"一言", scene:"自分の家族の仲のよさを話すときに。" },
+  { en:"Don't hog the bathroom", jp:"トイレを占領しないで！", cat:"依頼", scene:"洗面所やトイレを長く使う家族に文句を言うときに。" },
+  { en:"That sounds fun.", jp:"楽しそう！", cat:"あいづち", scene:"相手の予定や提案に「面白そう」と乗り気を示すときに。" },
+  { en:"It's going to be OK.", jp:"なんとかなるよ！", cat:"励まし", scene:"不安がる相手を「大丈夫、なんとかなる」と励ますときに。" },
+  { en:"My stomach hurts.", jp:"お腹が痛い！", cat:"気持ち", scene:"腹痛を訴えるときに。" },
+  { en:"I'd like one more", jp:"もう一つ欲しいです。", cat:"依頼", scene:"おかわりや追加を注文するときに。" },
+  { en:"I'm glad to see you.", jp:"会えてうれしい。", cat:"あいさつ", scene:"久しぶりや待ち合わせで相手に会えた喜びを伝えるときに。" },
+  { en:"I'm going home", jp:"家に帰ります。", cat:"一言", scene:"その場を切り上げて帰ると伝えるときに。" },
+  { en:"I have a hay fever.", jp:"花粉症です。", cat:"一言", scene:"くしゃみや鼻水の理由が花粉症だと説明するときに。" },
+  { en:"Keep it a secret.", jp:"秘密にしてね。", cat:"依頼", scene:"打ち明けた話を内緒にしておいてほしいときに。" },
+  { en:"Keep away from me.", jp:"近寄らないで。", cat:"注意", scene:"近づいてほしくない相手に距離を取らせるときに。" },
+  { en:"It's time to wake up.", jp:"起きる時間だ！", cat:"一言", scene:"朝、寝ている人を起こすときに。" },
+  { en:"Leave it to me!", jp:"僕に任せて。", cat:"返事", scene:"頼まれごとを自信を持って引き受けるときに。" },
+  { en:"I have an idea!", jp:"じゃあ、こうしましょう。", cat:"提案", scene:"いい考えがひらめいて提案を切り出すときに。" },
+  { en:"You're killing me.", jp:"超おもしろい。", cat:"あいづち", scene:"相手の話が面白すぎて笑いが止まらないときに。" },
+  { en:"I can't help it.", jp:"仕方がない。", cat:"気持ち", scene:"どうにもならない状況をあきらめて受け入れるときに。" },
+  { en:"Smile for the cam.", jp:"カメラみて！", cat:"一言", scene:"写真を撮るとき、カメラを見て笑ってもらうときに。" },
+  { en:"Speak louder, please.", jp:"もっと大きな声で話してください。", cat:"依頼", scene:"声が小さくて聞き取れないとき、大きな声を頼むときに。" },
+  { en:"I can't hear you.", jp:"聞こえません。", cat:"一言", scene:"電話や騒がしい場所で相手の声が聞こえないときに。" },
+  { en:"See you later then.", jp:"じゃあ後でね。", cat:"あいさつ", scene:"あとでまた会う約束をして別れるときに。" },
+  { en:"It's your imagination.", jp:"気のせいです。", cat:"返事", scene:"相手の「〜な気がする」に「気のせいだよ」と返すときに。" },
+  { en:"Let's not go now.", jp:"今行くのはやめよう。", cat:"提案", scene:"今は出かけるのをやめようと提案するときに。" },
+  { en:"Thanks for coming today.", jp:"今日は来てくれてありがとう！", cat:"あいさつ", scene:"集まりやイベントに来てくれた人にお礼を言うときに。" },
+  { en:"I'll think about it.", jp:"考えとく。", cat:"返事", scene:"即答を避け、検討すると保留にするときに。" },
+  { en:"The sooner the better.", jp:"早ければ早いほどいい。", cat:"一言", scene:"急ぎの用件で「早いに越したことはない」と伝えるときに。" },
+  { en:"It's up to you.", jp:"あなたの好きな方でいいよ。", cat:"返事", scene:"決定を相手に委ねるときに。「君に任せる」場面で。" },
+  { en:"What's the difference?", jp:"どこが違うの？", cat:"質問", scene:"似た二つの物の違いを尋ねるときに。" },
+  { en:"Thank you for everything.", jp:"いろいろありがとう。", cat:"あいさつ", scene:"世話になった相手にまとめてお礼を伝えるときに。" },
+  { en:"It was really close.", jp:"もうちょっとだったのにね。", cat:"あいづち", scene:"惜しいところで届かなかったときに。" },
+  { en:"You have red eyes.", jp:"目が充血してるよ。", cat:"一言", scene:"相手の目が赤いことに気づいて伝えるときに。" },
+  { en:"You'll regret it.", jp:"後悔するよ。", cat:"注意", scene:"よくない選択をしようとする相手に忠告するときに。" },
+  { en:"You take them all.", jp:"全部あげる。", cat:"一言", scene:"残った物を「全部どうぞ」と相手に譲るときに。" },
+  { en:"Don't let me down.", jp:"がっかりさせないで。", cat:"一言", scene:"相手に期待をかけ「頼むよ」と念を押すときに。" },
+  { en:"It's time to wake up.", jp:"起きる時間だ！", cat:"一言", scene:"寝ている人に起きる時間だと知らせるときに。" },
+  { en:"Come and sit over here.", jp:"こっちに来て座って。", cat:"依頼", scene:"相手を自分のそばの席に呼ぶときに。" },
+  { en:"Tell me what happened.", jp:"何があったのか教えて。", cat:"依頼", scene:"様子がおかしい相手に事情を話してほしいときに。" },
+  { en:"Don't worry about that.", jp:"そのことで悩まないで。", cat:"励まし", scene:"心配ごとを抱える相手を「気にしないで」となだめるときに。" },
+  { en:"Just bring yourself.", jp:"何も持って来なくていいですよ。", cat:"一言", scene:"招待した相手に「手ぶらで来て」と伝えるときに。" },
+  { en:"This is mine, right?", jp:"これ、僕のだよね？", cat:"質問", scene:"自分の物かどうか念のため確認するときに。" },
+  { en:"What should I bring?", jp:"何を持っていったらいい？", cat:"質問", scene:"パーティや集まりに持っていく物を尋ねるときに。" },
+  { en:"Are you all right?", jp:"大丈夫？", cat:"質問", scene:"転んだり具合が悪そうな相手を気づかうときに。" },
+  { en:"I have question for you.", jp:"聞きたいことがあるんだけど。", cat:"一言", scene:"質問を切り出す前の前置きとして。" },
+  { en:"Can I have seconds?", jp:"おかわりしてもいい？", cat:"質問", scene:"食事でおかわりがほしいとき、許可を求めるときに。" },
+  { en:"Can you give me a hand?", jp:"手伝ってくれる？", cat:"依頼", scene:"作業や運搬を手伝ってほしいときに。" },
+  { en:"Did you make it ok?", jp:"間に合った？", cat:"質問", scene:"電車や締め切りに間に合ったか相手に確認するときに。" },
+  { en:"Do I have to today?", jp:"今日やらなきゃダメ？", cat:"質問", scene:"気の進まない用事を今日中にやるのか確かめるときに。" },
+  { en:"Should I call her?", jp:"電話したほうがいい？", cat:"質問", scene:"電話すべきかどうか相手に相談するときに。" },
+  { en:"Should I cut my hair?", jp:"髪を切った方がいい？", cat:"質問", scene:"髪を切るか迷って意見を求めるときに。" },
+  { en:"Do you want some more?", jp:"もっと欲しい？", cat:"質問", scene:"食べ物や飲み物のおかわりを勧めるときに。" },
+  { en:"Do you want to go to lunch?", jp:"ランチ行かない？", cat:"提案", scene:"一緒にお昼を食べに行こうと誘うときに。" },
+  { en:"I have to go home.", jp:"家に帰らなくちゃ。", cat:"一言", scene:"そろそろ帰る必要があると伝えるときに。" },
+  { en:"I can do it by myself.", jp:"ひとりでできるよ。", cat:"一言", scene:"手伝いを断り、自分一人でできると伝えるときに。" },
+  { en:"I remember everything.", jp:"全部覚えているよ。", cat:"一言", scene:"忘れていないことを強調して伝えるときに。" },
+  { en:"I shouldn't have lied.", jp:"嘘なんてつくんじゃなかった。", cat:"気持ち", scene:"嘘をついたことを後悔しているときに。" },
+  { en:"I ran into Ken today.", jp:"今日、ケンにばったり会った。", cat:"一言", scene:"偶然知り合いに出会ったことを報告するときに。" },
+  { en:"I'm trying my best.", jp:"ベストはつくしてます。", cat:"気持ち", scene:"全力で頑張っていると相手に伝えるときに。" },
+  { en:"That's all I need.", jp:"必要なものはこれだけ。", cat:"一言", scene:"これ以上は要らない、これで十分と伝えるときに。" },
+  { en:"Do you mean this?", jp:"こういうことですか？", cat:"質問", scene:"相手の言いたいことを確認・言い換えるときに。" },
+  { en:"That's a waste of time.", jp:"時間のムダだよ。", cat:"気持ち", scene:"やっても無意味だと感じることを言うときに。" },
+  { en:"We're going to be late!", jp:"間に合わないよ！", cat:"一言", scene:"このままでは遅刻すると焦って急かすときに。" },
+  { en:"I can't eat another bite.", jp:"お腹いっぱいで、もう食べられない。", cat:"気持ち", scene:"満腹でこれ以上食べられないときに。" },
+  { en:"That was too rough.", jp:"ちょっと強すぎるよ。", cat:"一言", scene:"マッサージや扱いが強すぎたと伝えるときに。" },
+  { en:"It's not my business", jp:"僕には関係ないよ。", cat:"気持ち", scene:"自分には関わりのないことだと一線を引くときに。" },
+  { en:"Let's do this again.", jp:"またやろう。", cat:"あいさつ", scene:"楽しかった集まりの締めに「また会おう」と誘うときに。" },
+  { en:"I wish I were you.", jp:"うらやましいな。", cat:"気持ち", scene:"相手の境遇をうらやんで「自分もそうなりたい」と言うときに。" },
+  { en:"It's not my fault.", jp:"僕のせいじゃない。", cat:"気持ち", scene:"責任を問われ「自分のせいではない」と弁明するときに。" },
+  { en:"I bumped my head.", jp:"頭ぶつけちゃった。", cat:"一言", scene:"うっかり頭をぶつけてしまったときに。" },
+  { en:"That makes me sad.", jp:"それは悲しいね。", cat:"気持ち", scene:"悲しい話を聞いて気持ちを表すときに。" },
+  { en:"I need to go home.", jp:"そろそろ帰らなくちゃ", cat:"一言", scene:"そろそろ帰る時間だと切り出すときに。" },
+  { en:"Is that the time?", jp:"もうこんな時間？", cat:"一言", scene:"時計を見て、思ったより時間が経っていて驚くときに。" },
+  { en:"I'll brush my teeth.", jp:"歯磨きしなきゃ。", cat:"一言", scene:"寝る前など、歯を磨こうと言うときに。" },
+  { en:"It's going to be ok.", jp:"なんとかなるよ。", cat:"励まし", scene:"心配する相手を「大丈夫」と安心させるときに。" },
+  { en:"One sock is missing.", jp:"靴下が片方ない。", cat:"一言", scene:"洗濯などで靴下の片方が見つからないときに。" },
+  { en:"I can't stand it.", jp:"もう耐えられないよ。", cat:"気持ち", scene:"我慢の限界に達したことを訴えるときに。" },
+  { en:"The fruit went bad", jp:"果物が腐りました。", cat:"一言", scene:"食べ物が傷んでダメになっていたときに。" },
+  { en:"I'll write it down.", jp:"メモしておく。", cat:"返事", scene:"忘れないようにメモを取ると伝えるときに。" },
+  { en:"It's almost summer!", jp:"もうすぐ夏だ。", cat:"一言", scene:"季節の移り変わりを感じて口にするときに。" },
+  { en:"I can't stop sneezing.", jp:"くしゃみが止まらない。", cat:"気持ち", scene:"花粉や風邪でくしゃみが続くときに。" },
+  { en:"I'm out of ideas.", jp:"アイデアが浮かばない。", cat:"気持ち", scene:"考えが尽きて、もう案が出てこないときに。" },
+  { en:"I've got to go now.", jp:"もう行かなくちゃ", cat:"一言", scene:"その場を離れる必要があると伝えるときに。" },
+  { en:"I can't stop yawning.", jp:"あくびが止まらない。", cat:"気持ち", scene:"眠くてあくびが続くときに。" },
+  { en:"Spring makes me sleepy.", jp:"春は眠くなります。", cat:"一言", scene:"春の陽気で眠くなる感覚を話すときに。" },
+  { en:"Is it still raining?", jp:"まだ雨が降っていますか？", cat:"質問", scene:"外の雨がやんだか相手に尋ねるときに。" },
+  { en:"Let me do it.", jp:"私にやらせて。", cat:"依頼", scene:"自分にやらせてほしいと申し出るときに。" },
+  { en:"Do me a favor?", jp:"お願いがあるんだけど。", cat:"依頼", scene:"頼みごとを切り出す前の前置きとして。" },
+  { en:"I wish I could.", jp:"そうできればいいんだけど。", cat:"返事", scene:"誘いを「行けたらいいんだけど（無理)」とやんわり断るときに。" },
+  { en:"I didn't mean to.", jp:"そんなつもりじゃなかった。", cat:"気持ち", scene:"うっかり相手を傷つけたとき「わざとじゃない」と弁明するときに。" },
+  { en:"How much is it?", jp:"いくらですか。", cat:"質問", scene:"買い物で値段を尋ねるときに。" },
+  { en:"Let me think about it.", jp:"ちょっと考えさせて。", cat:"返事", scene:"即決せず少し考える時間がほしいときに。" },
+  { en:"Thank for your help", jp:"助けてくれてありがとう。", cat:"あいさつ", scene:"手伝ってくれた相手にお礼を伝えるときに。" },
+  { en:"I agree with your suggestion.", jp:"君の意見に賛成だ。", cat:"返事", scene:"会議や相談で相手の提案に同意するときに。" },
+  { en:"I'm sorry I forgot.", jp:"忘れててごめんなさい。", cat:"あいさつ", scene:"約束や用事を忘れてしまい謝るときに。" },
+  { en:"I'll tell you as soon as possible.", jp:"できるだけ早く話すよ。", cat:"返事", scene:"後で詳しく伝えると約束するときに。" },
+  { en:"I'm sure it's okay.", jp:"きっと大丈夫だよ。", cat:"励まし", scene:"不安がる相手を「きっと平気」と安心させるときに。" },
+  { en:"Don't worry about it.", jp:"気にしないで！", cat:"励まし", scene:"相手が謝ったり気にしているときに「平気だよ」と返すときに。" },
+  { en:"I don't feel like talking right now.", jp:"今は話したくないな。", cat:"気持ち", scene:"気分が乗らず、今は話したくないと伝えるときに。" },
+  { en:"I hope you're having fun.", jp:"楽しめるといいね。", cat:"あいさつ", scene:"出かける相手やイベント中の人に向けて。" },
+  { en:"I wish I were you.", jp:"うらやましいな。", cat:"気持ち", scene:"相手の幸運や立場をうらやむときに。" },
+  { en:"I'm looking forward to seeing you.", jp:"会うのが楽しみ！", cat:"気持ち", scene:"会う約束をした相手に楽しみな気持ちを伝えるときに。" },
+  { en:"We've reached the halfway point.", jp:"半分まできたよ。", cat:"一言", scene:"作業や道のりが半分まで進んだことを伝えるときに。" },
+  { en:"Do you mind moving over just a little?", jp:"ちょっと詰めてくれる？", cat:"依頼", scene:"ベンチや電車で席を少し詰めてほしいときに。" },
+  { en:"I'm sorry I'm late.", jp:"遅れてごめんね。", cat:"あいさつ", scene:"待ち合わせや約束に遅れて謝るときに。" },
+  { en:"How was the day today?", jp:"今日はどうだった？", cat:"質問", scene:"一日の終わりに相手の様子を尋ねるときに。" },
+  { en:"I'm counting on you.", jp:"これ君に任せるよ。", cat:"一言", scene:"相手を頼りにして仕事や役割を任せるときに。" },
+  { en:"If you are busy, you don't have to go there.", jp:"忙しいなら、行かなくていいですよ。", cat:"一言", scene:"無理しなくていいと相手に気をつかうときに。" },
+  { en:"That's not what I meant.", jp:"そういう意味じゃない", cat:"一言", scene:"誤解されたとき「言いたいのはそうじゃない」と訂正するときに。" },
+  { en:"I'm not sure how.", jp:"どうしたらいいのかわからない。", cat:"気持ち", scene:"やり方がわからず困っているときに。" },
+  { en:"What do you think?", jp:"どう思う？", cat:"質問", scene:"相手の意見や感想を求めるときに。" },
+  { en:"Don't worry, it'll get better soon.", jp:"大丈夫、すぐ治るよ。", cat:"励まし", scene:"体調を崩した相手を「すぐよくなるよ」と励ますときに。" },
+  { en:"Sorry but I won't make it in time.", jp:"ごめん、間に合わない。", cat:"一言", scene:"約束の時間に間に合わないと連絡するときに。" },
+  { en:"Let's grab a bite to eat.", jp:"ちょっと食べようか。", cat:"提案", scene:"軽く何か食べに行こうと誘うときに。" },
+  { en:"Show me where it hurts.", jp:"どこが痛いか見せて！", cat:"依頼", scene:"けがや痛みを訴える相手に、場所を確かめるときに。" },
+  { en:"What did you just say?", jp:"今、なんて言った？", cat:"質問", scene:"相手の言葉が聞き取れず、もう一度聞き返すときに。" },
+  { en:"I see you look very upset.", jp:"君すごく怒ってるみたいだね。", cat:"あいづち", scene:"相手が明らかに怒っている様子に触れるときに。" },
+  { en:"I used to live in Tokyo.", jp:"以前、東京に住んでたよ。", cat:"一言", scene:"昔の住まいや経歴を話すときに。" },
+  { en:"Don't worry about those people.", jp:"あんな人たちのこと、気にしないで。", cat:"励まし", scene:"嫌な相手のことで落ち込む人を励ますときに。" },
+  { en:"I think this is better", jp:"こっちのほうがいいと思う。", cat:"一言", scene:"二択で自分のおすすめを伝えるときに。" },
+  { en:"I'll let you know tomorrow", jp:"明日、知らせるね。", cat:"返事", scene:"今は決められず、明日返事すると伝えるときに。" },
+  { en:"I hope it is sunny.", jp:"晴れるといいね。", cat:"一言", scene:"イベントや外出の前に好天を願うときに。" },
+  { en:"I have a favor to ask.", jp:"お願いがあるんだけど。", cat:"依頼", scene:"頼みごとを丁寧に切り出すときに。" },
+  { en:"I know how you feel.", jp:"気持ちはわかるよ。", cat:"あいづち", scene:"つらい相手に共感を示すときに。" },
+  { en:"Let me introduce my family.", jp:"家族を紹介するね。", cat:"あいさつ", scene:"自分の家族を相手に引き合わせるときに。" },
+  { en:"Could you speak more slowly?", jp:"もっとゆっくり話してください。", cat:"依頼", scene:"早口で聞き取れないとき、ゆっくり話すよう頼むときに。" },
+  { en:"You can tell me anything.", jp:"何でも言っていいのよ。", cat:"一言", scene:"悩む相手に「遠慮なく話して」と寄り添うときに。" },
+  { en:"Have you ever seen a Panda?", jp:"今までにパンダを見たことある？", cat:"質問", scene:"これまでの経験があるか尋ねるときに。" },
+  { en:"Are you interested in going?", jp:"行きたい？", cat:"質問", scene:"イベントなどに行く気があるか相手に確かめるときに。" },
+  { en:"Can you get me that pen?", jp:"ペンを取ってくれる？", cat:"依頼", scene:"手の届かない物を取ってほしいときに。" },
+  { en:"Do you know who did it?", jp:"誰がやったか知ってる？", cat:"質問", scene:"誰がしたのか相手に尋ねるときに。" },
+  { en:"How many do you need?", jp:"いくついるの？", cat:"質問", scene:"必要な数を相手に確かめるときに。" },
+  { en:"Could you open the door, please?", jp:"ドアを開けてもらえる？", cat:"依頼", scene:"手がふさがっているときなど、ドアを開けてほしいときに。" },
+  { en:"Can you give me some help?", jp:"手伝ってくれる？", cat:"依頼", scene:"手助けをお願いするときに。" },
+  { en:"What's that called?", jp:"それってなんて言うの？", cat:"質問", scene:"物の名前がわからず尋ねるときに。" },
+  { en:"You don't have to eat it all.", jp:"全部食べなくていいよ。", cat:"一言", scene:"無理して食べなくていいと相手に気をつかうときに。" },
+  { en:"How do you like sushi?", jp:"お寿司は好きですか？", cat:"質問", scene:"相手の好みや感想を尋ねるときに。" },
+  { en:"What can I do to fix this problem?", jp:"この問題を解決するにはどうすればいいの？", cat:"質問", scene:"問題の解決策を相談・模索するときに。" },
+  { en:"Who are you talking to?", jp:"誰と話してるの？", cat:"質問", scene:"電話や会話の相手が誰か尋ねるときに。" },
+  { en:"Can you hold this a little bit ?", jp:"ちょっと持ってくれる？", cat:"依頼", scene:"少しの間、荷物を持っていてほしいときに。" },
+  { en:"Do you have all your stuff ?", jp:"忘れ物ない？", cat:"質問", scene:"出かける前に持ち物の確認を促すときに。" },
+  { en:"What's that mean?", jp:"それってどういう意味？", cat:"質問", scene:"言葉や発言の意味を尋ねるときに。" },
+  { en:"Why don't you like him?", jp:"どうして彼のことが嫌いなの？", cat:"質問", scene:"相手が誰かを嫌う理由を尋ねるときに。" },
+  { en:"What sport do you like?", jp:"どのスポーツが好き？", cat:"質問", scene:"好きなスポーツを話題にするときに。" },
+  { en:"Hey, where are you going?", jp:"ねえ、どこいくの？", cat:"質問", scene:"出かけようとする相手に行き先を尋ねるときに。" },
+  { en:"Can you show me how to do it?", jp:"どうやってやるの？", cat:"質問", scene:"やり方を教えてほしいときに。" },
+  { en:"What does that word mean?", jp:"この言葉の意味はなんですか？", cat:"質問", scene:"知らない単語の意味を尋ねるときに。" },
+  { en:"Would you scratch my back.", jp:"背中かいてもらえる？", cat:"依頼", scene:"手の届かない背中をかいてほしいときに。" },
+  { en:"What should I give him", jp:"彼に何をあげたらいい？", cat:"質問", scene:"プレゼント選びで意見を求めるときに。" },
+  { en:"Where should I throw this away?", jp:"これはどこに捨てればいい？", cat:"質問", scene:"ゴミの捨て場所を尋ねるときに。" },
+  { en:"Do you mean...you want more?", jp:"もっと欲しいってこと？", cat:"質問", scene:"相手の言いたいことを確認するときに。" },
+  { en:"Which one is yours?", jp:"どっちが君の？", cat:"質問", scene:"どれが相手の物か尋ねるときに。" },
+  { en:"How do you like this?", jp:"これ、どう思う？", cat:"質問", scene:"見せた物について感想を求めるときに。" },
+  { en:"What time do you want me to pick you up?", jp:"何時に迎えに行けばいい？", cat:"質問", scene:"車などで迎えに行く時間を相談するときに。" },
+  { en:"Turn on the air conditioner, please.", jp:"エアコンつけてくれる？", cat:"依頼", scene:"暑い・寒いときにエアコンをつけてほしいときに。" },
+  { en:"What do you call your cat?", jp:"猫の名前は何ていうの？", cat:"質問", scene:"ペットの名前を尋ねるときに。" },
+  { en:"What about the weekend?", jp:"週末はどうしているの？", cat:"質問", scene:"週末の予定や過ごし方を尋ねるときに。" },
+  { en:"How far is it from here?", jp:"ここからどのくらいの距離ですか？", cat:"質問", scene:"目的地までの距離を尋ねるときに。" },
+  { en:"Can you let him have it for a while?", jp:"ちょっと貸してあげられる？", cat:"依頼", scene:"自分の物を別の人に少し貸してあげてほしいときに。" },
+  { en:"Tell me how this got here.", jp:"どうしてこうなったの？", cat:"質問", scene:"状況がこうなった経緯を説明してほしいときに。" },
+  { en:"Explain to me what happened.", jp:"何があったか、話してごらん。", cat:"依頼", scene:"起きたことを順を追って話してほしいときに。" },
+  { en:"What are you mad about?", jp:"何に怒ってるの？", cat:"質問", scene:"怒っている相手に、その理由を尋ねるときに。" },
+  { en:"I'd like to try a lot of sports", jp:"いろんなスポーツに挑戦したい。", cat:"気持ち", scene:"やってみたいことへの意欲を語るときに。" },
+  { en:"They must make up for lost time.", jp:"彼らは出遅れを取り戻さなければならない。", cat:"一言", scene:"遅れを挽回する必要があると話すときに。" },
+  { en:"I think I understand", jp:"分かると思う。", cat:"返事", scene:"説明を受けて「だいたい理解できた」と返すときに。" },
+  { en:"I can't help but scratching", jp:"かゆくて我慢できない。", cat:"気持ち", scene:"かゆくてつい掻いてしまうときに。" },
+  { en:"I don't like the taste of Natto.", jp:"納豆が苦手なんだ。", cat:"気持ち", scene:"苦手な食べ物について話すときに。" },
+  { en:"They are probably out.", jp:"彼らはおそらくいない。", cat:"一言", scene:"訪ねた相手が留守だろうと推測するときに。" },
+  { en:"I wanna eat something sweet.", jp:"何か甘いものが食べたいな。", cat:"気持ち", scene:"甘いものが食べたい気分のときに。" },
+  { en:"I'm not sure how to explain it.", jp:"どう説明していいかわからない。", cat:"気持ち", scene:"うまく言葉にできず説明に困るときに。" },
+  { en:"I wish I spoke English", jp:"英語が話せたらよかったのに。", cat:"気持ち", scene:"英語が話せないもどかしさを表すときに。" },
+  { en:"I'm not a good public speaker.", jp:"人前で話すのは苦手。", cat:"気持ち", scene:"大勢の前で話すのが苦手だと打ち明けるときに。" },
+  { en:"It really moved me.", jp:"すごく感動した。", cat:"気持ち", scene:"映画や話に深く感動したときに。" },
+  { en:"I've got a canker sore.", jp:"口内炎ができた", cat:"一言", scene:"口の中が痛い、口内炎ができたと伝えるときに。" },
+  { en:"I have many things to do.", jp:"やることがたくさんある。", cat:"気持ち", scene:"忙しくてやることが山積みのときに。" },
+  { en:"Does this bus go to Shibuya?", jp:"このバスは渋谷に行きますか。", cat:"質問", scene:"バスや電車の行き先を運転手や人に確認するときに。" },
+  { en:"I nearly made a mistake.", jp:"あやうく間違うところだった。", cat:"一言", scene:"危ういところでミスを免れたときに。" },
+  { en:"Let's not take the bus.", jp:"バスに乗るのやめようよ。", cat:"提案", scene:"移動手段としてバスはやめようと提案するときに。" },
+  { en:"It is going to rain this evening.", jp:"夕方には雨になりそう。", cat:"一言", scene:"天気予報や空模様から夕方の雨を予想するときに。" }
+];
+
+// ===== AUTH / STORAGE =====
+const LS_USERS = "npUsers";
+const LS_CUR = "npCurrentUser";
+let currentUser = null;
+let regAvatarData = "";
+
+function loadUsers(){ try{ return JSON.parse(localStorage.getItem(LS_USERS)||"{}"); }catch(e){ return {}; } }
+function saveUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+function getUser(){ const u=loadUsers(); return u[currentUser]||null; }
+function setUser(data){ const u=loadUsers(); u[currentUser]=data; saveUsers(u); }
+
+function showScreen(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); }
+function showLogin(){ showScreen("loginScreen"); }
+function showRegister(){ showScreen("registerScreen"); }
+
+function previewAvatar(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ regAvatarData=e.target.result; document.getElementById("regAvatarPreview").innerHTML='<img src="'+regAvatarData+'">'; };
+  r.readAsDataURL(f);
+}
+function doRegister(){
+  const err=document.getElementById("regError");
+  const name=document.getElementById("regUser").value.trim();
+  const p1=document.getElementById("regPass").value, p2=document.getElementById("regPass2").value;
+  const showErr=m=>{ err.textContent=m; err.style.display="block"; };
+  if(!name) return showErr("ユーザー名を入力してください");
+  if(p1.length<1) return showErr("パスワードを入力してください");
+  if(p1!==p2) return showErr("パスワードが一致しません");
+  const users=loadUsers();
+  if(users[name]) return showErr("そのユーザー名は使われています");
+  users[name]={ pass:p1, avatar:regAvatarData, learned:[], best:0 };
+  saveUsers(users);
+  currentUser=name; localStorage.setItem(LS_CUR,name);
+  err.style.display="none"; enterHome();
+}
+function doLogin(){
+  const err=document.getElementById("loginError");
+  const name=document.getElementById("loginUser").value.trim();
+  const pass=document.getElementById("loginPass").value;
+  const users=loadUsers();
+  if(!users[name]||users[name].pass!==pass){ err.textContent="ユーザー名またはパスワードが違います"; err.style.display="block"; return; }
+  currentUser=name; localStorage.setItem(LS_CUR,name); err.style.display="none"; enterHome();
+}
+function doLogout(){ currentUser=null; localStorage.removeItem(LS_CUR); document.getElementById("loginUser").value=""; document.getElementById("loginPass").value=""; showLogin(); }
+
+function enterHome(){
+  const u=getUser();
+  document.getElementById("homeUserName").textContent=currentUser;
+  const av=document.getElementById("homeAvatar");
+  if(u&&u.avatar){ av.innerHTML='<img src="'+u.avatar+'">'; }
+  else{ av.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="#a09aac"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>'; }
+  refreshStats(); showScreen("homeScreen");
+}
+function refreshStats(){
+  const u=getUser()||{learned:[],best:0};
+  document.getElementById("statWords").textContent=VOCAB.length;
+  document.getElementById("statLearned").textContent=(u.learned||[]).length;
+  document.getElementById("statBest").textContent=(u.best||0)+"%";
+}
+function isLearned(en){ const u=getUser(); return u&&u.learned&&u.learned.indexOf(en)>=0; }
+function setLearned(en,on){
+  const u=getUser(); if(!u) return; u.learned=u.learned||[];
+  const i=u.learned.indexOf(en);
+  if(on&&i<0) u.learned.push(en);
+  if(!on&&i>=0) u.learned.splice(i,1);
+  setUser(u);
+}
+
+// ===== HELPERS =====
+let quizCount=20;
+let quizDir="en2jp";
+function setCount(n,el){ quizCount=n; document.querySelectorAll("[data-n]").forEach(b=>b.classList.remove("active")); el.classList.add("active"); }
+function setDir(d,el){ quizDir=d; document.querySelectorAll("[data-d]").forEach(b=>b.classList.remove("active")); el.classList.add("active"); }
+function promptText(item){ return quizDir==="en2jp"?item.en:item.jp; }
+function answerText(item){ return quizDir==="en2jp"?item.jp:item.en; }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function goHome(){ speechSynthesis.cancel(); refreshStats(); showScreen("homeScreen"); }
+function speak(text){
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=0.92; speechSynthesis.speak(u); }catch(e){}
+}
+
+// ===== QUIZ =====
+let quizList=[], qIndex=0, qScore=0, answered=false, lastUnlearnt=false;
+function startQuiz(unlearntOnly){
+  lastUnlearnt=!!unlearntOnly;
+  let pool=VOCAB.slice();
+  if(unlearntOnly) pool=pool.filter(v=>!isLearned(v.en));
+  if(pool.length===0){ alert("対象のフレーズがありません。先に「覚えた」を外すか別のモードを選んでください。"); return; }
+  pool=shuffle(pool);
+  if(quizCount<pool.length) pool=pool.slice(0,quizCount);
+  quizList=pool; qIndex=0; qScore=0;
+  showScreen("quizScreen"); renderQ();
+}
+function renderQ(){
+  answered=false;
+  const item=quizList[qIndex];
+  const A=answerText(item);
+  document.getElementById("qTag").textContent="Q "+(qIndex+1)+" / "+quizList.length;
+  document.getElementById("qWord").textContent=promptText(item);
+  document.getElementById("scoreChip").textContent=qScore+" / "+quizList.length;
+  document.getElementById("progBar").style.width=((qIndex)/quizList.length*100)+"%";
+  document.getElementById("feedCard").classList.remove("visible");
+  document.getElementById("nextBtn").style.display="none";
+  // 日本語→英語のときは、答え(英語)を先に読み上げないよう発音ボタンは回答後に表示
+  const sb=document.getElementById("quizSpeakBtn");
+  sb.style.display = quizDir==="en2jp" ? "inline-flex" : "none";
+  // choices
+  const others=shuffle(VOCAB.filter(v=>answerText(v)!==A)).slice(0,3);
+  const opts=shuffle([item].concat(others));
+  const box=document.getElementById("choices"); box.innerHTML="";
+  opts.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="choice-btn"; b.textContent=answerText(o);
+    b.onclick=()=>pickAnswer(b,o,item);
+    box.appendChild(b);
+  });
+  if(quizDir==="en2jp") speak(item.en);
+}
+function pickAnswer(btn,chosen,item){
+  if(answered) return; answered=true;
+  const A=answerText(item);
+  const correct=answerText(chosen)===A;
+  document.querySelectorAll("#choices .choice-btn").forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===A) b.classList.add("correct");
+    else if(b===btn) b.classList.add("wrong");
+  });
+  if(correct) qScore++;
+  document.getElementById("scoreChip").textContent=qScore+" / "+quizList.length;
+  const fl=document.getElementById("feedLabel");
+  fl.className="feedback-label "+(correct?"ok":"ng");
+  fl.textContent=correct?"◎ 正解！  "+A:"✕ 不正解  →  "+A;
+  document.getElementById("feedScene").textContent=item.scene;
+  document.getElementById("feedCard").classList.add("visible");
+  document.getElementById("nextBtn").style.display="block";
+  document.getElementById("quizSpeakBtn").style.display="inline-flex";
+  document.getElementById("progBar").style.width=((qIndex+1)/quizList.length*100)+"%";
+}
+function nextQ(){
+  if(qIndex<quizList.length-1){ qIndex++; renderQ(); }
+  else showResult();
+}
+function showResult(){
+  const total=quizList.length, pct=Math.round(qScore/total*100);
+  document.getElementById("rScore").textContent=qScore;
+  document.getElementById("rDenom").textContent="/ "+total+"問正解";
+  const pe=document.getElementById("rPct");
+  let cls,msg;
+  if(pct>=90){ cls="s"; msg="パーフェクトに近い！素晴らしい🎉"; }
+  else if(pct>=70){ cls="a"; msg="いい調子！この調子で続けよう"; }
+  else if(pct>=50){ cls="b"; msg="あと一歩！復習でしっかり定着"; }
+  else{ cls="c"; msg="まずはフレーズ帳で確認してみよう"; }
+  pe.className="result-pct "+cls; pe.textContent="正答率 "+pct+"%";
+  document.getElementById("rMsg").textContent=msg;
+  const u=getUser(); if(u){ if(pct>(u.best||0)){ u.best=pct; setUser(u); } }
+  showScreen("resultScreen");
+  if(pct>=70) confetti();
+}
+
+// ===== FLASHCARD =====
+let flashList=[], fIndex=0, flipped=false;
+function startFlash(unlearntOnly){
+  let pool=VOCAB.slice();
+  if(unlearntOnly) pool=pool.filter(v=>!isLearned(v.en));
+  if(pool.length===0){ alert("対象のフレーズがありません。"); return; }
+  flashList=pool; fIndex=0; showScreen("flashScreen"); renderFlash();
+}
+function renderFlash(){
+  flipped=false;
+  const item=flashList[fIndex];
+  document.getElementById("flashCounter").textContent=(fIndex+1)+" / "+flashList.length;
+  document.getElementById("flashWord").textContent=promptText(item);
+  const m=document.getElementById("flashMeaning"); m.textContent=answerText(item); m.style.display="none";
+  document.getElementById("flashHint").style.display="block";
+  document.getElementById("flashScene").textContent=item.scene;
+  const cb=document.getElementById("flashCatBadge");
+  if(item.cat){ cb.textContent=item.cat; cb.classList.add("show"); } else cb.classList.remove("show");
+  const lb=document.getElementById("flashLearnedBadge");
+  const btn=document.getElementById("learnedBtn");
+  if(isLearned(item.en)){ lb.classList.add("show"); btn.classList.add("checked"); btn.lastChild.textContent="覚えた済み"; }
+  else{ lb.classList.remove("show"); btn.classList.remove("checked"); btn.lastChild.textContent="覚えた！"; }
+  if(quizDir==="en2jp") speak(item.en);
+}
+function flipCard(){
+  flipped=!flipped;
+  const m=document.getElementById("flashMeaning");
+  document.getElementById("flashHint").style.display=flipped?"none":"block";
+  m.style.display=flipped?"block":"none";
+}
+function flashNext(){ if(fIndex<flashList.length-1){ fIndex++; renderFlash(); } }
+function flashPrev(){ if(fIndex>0){ fIndex--; renderFlash(); } }
+function shuffleFlash(){ flashList=shuffle(flashList); fIndex=0; renderFlash(); }
+function speakFlash(){ speak(flashList[fIndex].en); }
+function toggleLearned(){
+  const item=flashList[fIndex]; const now=!isLearned(item.en);
+  setLearned(item.en,now); renderFlash();
+}
+
+// ===== SEARCH =====
+function showSearch(){ showScreen("searchScreen"); document.getElementById("searchInput").value=""; document.getElementById("searchResults").innerHTML='<div class="search-hint">英語（例：Go ahead）または日本語（例：どうぞ）で検索</div>'; document.getElementById("searchClear").style.display="none"; }
+function clearSearch(){ document.getElementById("searchInput").value=""; doSearch(""); }
+function doSearch(q){
+  q=q.trim().toLowerCase();
+  document.getElementById("searchClear").style.display=q?"block":"none";
+  const box=document.getElementById("searchResults");
+  if(!q){ box.innerHTML='<div class="search-hint">英語（例：Go ahead）または日本語（例：どうぞ）で検索</div>'; return; }
+  const res=VOCAB.filter(v=>v.en.toLowerCase().indexOf(q)>=0||v.jp.indexOf(q)>=0||(v.scene&&v.scene.indexOf(q)>=0));
+  if(res.length===0){ box.innerHTML='<div class="no-results">該当するフレーズが見つかりません</div>'; return; }
+  let html='<div class="search-count">'+res.length+'件</div>';
+  res.forEach(v=>{
+    const safe=v.en.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+    html+='<div class="search-result-card"><div class="sr-word">'+v.en+'</div><div class="sr-jp">'+v.jp+'</div><div class="sr-scene">'+v.scene+'</div><button class="sr-speak" onclick="speak(\''+safe+'\')">▶ 発音を聞く</button></div>';
+  });
+  box.innerHTML=html;
+}
+
+// ===== MISC =====
+function speakCurrent(){ if(quizList[qIndex]) speak(quizList[qIndex].en); }
+function confetti(){
+  const wrap=document.getElementById("confettiWrap"); wrap.innerHTML="";
+  const colors=["#c0718a","#8a7ab8","#6aa88c","#b88a50","#e8a0b8"];
+  for(let i=0;i<60;i++){
+    const p=document.createElement("div"); p.className="confetti-piece";
+    p.style.left=Math.random()*100+"%";
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration=(2+Math.random()*2)+"s";
+    p.style.animationDelay=(Math.random()*0.5)+"s";
+    wrap.appendChild(p);
+  }
+  setTimeout(()=>wrap.innerHTML="",4500);
+}
+
+// ===== INIT =====
+(function init(){
+  const saved=localStorage.getItem(LS_CUR);
+  if(saved&&loadUsers()[saved]){ currentUser=saved; enterHome(); }
+  else showLogin();
+})();
+</script>
+</body>
+</html>
