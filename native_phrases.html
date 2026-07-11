@@ -762,8 +762,15 @@ function renderQ(){
   // 日本語→英語のときは、答え(英語)を先に読み上げないよう発音ボタンは回答後に表示
   const sb=document.getElementById("quizSpeakBtn");
   sb.style.display = quizDir==="en2jp" ? "inline-flex" : "none";
-  // choices
-  const others=shuffle(VOCAB.filter(v=>answerText(v)!==A)).slice(0,3);
+  // choices（4択が必ず全て異なるテキストになるよう重複を除外）
+  const seen={}; seen[A]=1;
+  const others=[];
+  for(const v of shuffle(VOCAB)){
+    const t=answerText(v);
+    if(seen[t]) continue;
+    seen[t]=1; others.push(v);
+    if(others.length===3) break;
+  }
   const opts=shuffle([item].concat(others));
   const box=document.getElementById("choices"); box.innerHTML="";
   opts.forEach(o=>{
